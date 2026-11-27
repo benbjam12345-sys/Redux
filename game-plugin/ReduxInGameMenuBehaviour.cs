@@ -157,8 +157,8 @@ namespace Redux.GamePlugin
             menuCanvas.enabled = menuOpen;
 
             RectTransform canvasRect = canvasObject.GetComponent<RectTransform>();
-            canvasRect.sizeDelta = new Vector2(680f, 940f);
-            canvasRect.localScale = Vector3.one * 0.00105f;
+            canvasRect.sizeDelta = new Vector2(680f, 1120f);
+            canvasRect.localScale = Vector3.one * 0.0009f;
 
             CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
@@ -189,6 +189,7 @@ namespace Redux.GamePlugin
 
             AddLabel("REDUX", 34, new Color(1f, 0.06f, 0.15f), 54);
             AddLabel("HOLD LEFT TRIGGER + GRIP TO OPEN MENU", 20, Color.white, 58);
+            AddLabel("AIM WITH RIGHT CONTROLLER • PRESS RIGHT TRIGGER TO SELECT", 16, Color.gray, 40);
             AddLabel(handMode ? "MODE: HAND MENU" : "MODE: FLOATING COMPUTER", 18, Color.gray, 36);
 
             AddButton("SWITCH TO " + (handMode ? "FLOATING COMPUTER" : "HAND MENU"), () =>
