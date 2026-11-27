@@ -127,7 +127,30 @@ public final class MainActivity extends Activity {
     private void showPage(String target) {
         body.removeAllViews();
         outputView = null;
-        renderConnectionPage();
+        String page = target == null ? "CONNECT" : target.toUpperCase(Locale.ROOT);
+        switch (page) {
+            case "TOOLS":
+                renderToolsPage();
+                break;
+            case "APPS":
+                renderAppsPage();
+                break;
+            case "MODULES":
+            case "PROFILES":
+                renderModulesPage();
+                break;
+            case "QUICK":
+            case "ACTIONS":
+                renderQuickActions();
+                break;
+            case "MENU":
+                renderMenuPage();
+                break;
+            case "CONNECT":
+            default:
+                renderConnectionPage();
+                break;
+        }
         addOutputBox();
         setStatus(adbConnected ? "CONNECTED — SHARED ADB SESSION" :
                 "NOT CONNECTED — FOLLOW THE STEPS BELOW", adbConnected ? RED : MUTED);
