@@ -305,22 +305,22 @@ public final class MainActivity extends Activity {
         }
         addSpace(6);
         if (!adbConnected) {
-            addText("Pair once with the six-digit code, then connect using the separate Wireless Debugging port. This is the only REDUX app screen.", WHITE, 14);
+            addText("Pair once with the six-digit code, then connect using the separate Wireless Debugging port. Use the Quest IP address shown in Wireless Debugging for both steps.", WHITE, 14);
             addSpace(5);
             addHeading("STEP 1 — OPEN SETTINGS");
             addText("Open Wireless Debugging on your Quest.", MUTED, 12);
             addButton("1. OPEN WIRELESS DEBUGGING", false, this::openWirelessSettings);
 
             addHeading("STEP 2 — PAIR (FIRST TIME ONLY)");
-            addText("Tap Pair device with pairing code in Quest settings. Copy the temporary pairing port and the six-digit code into these boxes.", MUTED, 12);
+            addText("Tap Pair device with pairing code in Quest settings. Copy the Quest IP address, temporary pairing port, and six-digit code into these boxes. The pairing port changes and is not the connection port.", MUTED, 12);
             pairPortField = addField("PAIRING PORT", "", InputType.TYPE_CLASS_NUMBER);
             pairCodeField = addField("SIX-DIGIT CODE", "", InputType.TYPE_CLASS_NUMBER);
             pairCodeField.setFilters(new InputFilter[]{new InputFilter.LengthFilter(6)});
             addButton("2. PAIR REDUX", true, this::doPair);
 
             addHeading("STEP 3 — CONNECT");
-            addText("Go back to the main Wireless Debugging screen. Enter the port shown there (not the pairing port). Leave Host as 127.0.0.1 for this Quest.", MUTED, 12);
-            hostField = addField("HOST (LEAVE AS IS)", prefs.getString("host", "127.0.0.1"), InputType.TYPE_CLASS_TEXT);
+            addText("Go back to the main Wireless Debugging screen. Enter the Quest IP address and the connection port shown there. Do not use the temporary pairing port here.", MUTED, 12);
+            hostField = addField("QUEST IP ADDRESS (FROM WIRELESS DEBUGGING)", prefs.getString("host", ""), InputType.TYPE_CLASS_TEXT);
             connectPortField = addField("CONNECTION PORT", prefs.getString("connection_port", ""), InputType.TYPE_CLASS_NUMBER);
             addButton("3. CONNECT REDUX", false, this::doConnect);
         } else {
