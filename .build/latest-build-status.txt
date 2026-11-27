@@ -1,0 +1,5 @@
+apk_build_result=skipped
+workflow_result=failure
+source_commit=2add9dace90050f8e11afa325f3bd91fd886c92d
+run_url=https://github.com/benbjam12345-sys/Redux/actions/runs/46041245296
+checked_at_utc=2026-11-27T17:22:16Z
