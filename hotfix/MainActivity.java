@@ -44,6 +44,9 @@ public final class MainActivity extends Activity {
     private EditText hostField, pairPortField, pairCodeField, connectPortField, packageField;
     private String lastOutput = "REDUX ready. Connect once; all panels will use the same ADB session.";
     private String selectedProfile = "ALL";
+    private String menuProfile = "REDUX";
+    private String menuMode = "HAND";
+    private String menuTab = "MOVEMENT";
     private boolean adbConnected = false;
 
     @Override protected void onCreate(Bundle state) {
@@ -81,6 +84,19 @@ public final class MainActivity extends Activity {
         subtitle.setTextColor(MUTED);
         subtitle.setTextSize(12);
         root.addView(subtitle, new LinearLayout.LayoutParams(-1, dp(28)));
+
+        LinearLayout navTop = new LinearLayout(this);
+        navTop.setOrientation(LinearLayout.HORIZONTAL);
+        navTop.addView(navButton("CONNECT", "CONNECT"), weightParams());
+        navTop.addView(navButton("MENU", "MENU"), weightParams());
+        navTop.addView(navButton("PROFILES", "MODS"), weightParams());
+        root.addView(navTop, new LinearLayout.LayoutParams(-1, dp(39)));
+
+        LinearLayout navBottom = new LinearLayout(this);
+        navBottom.setOrientation(LinearLayout.HORIZONTAL);
+        navBottom.addView(navButton("DEVICE TOOLS", "TOOLS"), weightParams());
+        navBottom.addView(navButton("APP LAUNCHER", "APPS"), weightParams());
+        root.addView(navBottom, new LinearLayout.LayoutParams(-1, dp(39)));
 
         status = new TextView(this);
         status.setText("NOT CONNECTED");
@@ -123,10 +139,145 @@ public final class MainActivity extends Activity {
     private void showPage(String target) {
         body.removeAllViews();
         outputView = null;
-        renderConnectionPage();
-        if (adbConnected) renderQuickActions();
+
+        if ("MENU".equals(target)) {
+            renderMenuPage();
+        } else if ("MODS".equals(target) || "MODULES".equals(target)) {
+            renderModulesPage();
+        } else if ("TOOLS".equals(target)) {
+            renderToolsPage();
+        } else if ("APPS".equals(target)) {
+            renderAppsPage();
+        } else {
+            renderConnectionPage();
+            if (adbConnected) renderQuickActions();
+        }
+
         addOutputBox();
-        setStatus(adbConnected ? "CONNECTED — READY TO USE" : "NOT CONNECTED — FOLLOW THE STEPS BELOW", adbConnected ? RED : MUTED);
+        if (adbConnected) {
+            setStatus("CONNECTED — SHARED ADB SESSION", RED);
+        } else if ("CONNECT".equals(target)) {
+            setStatus("NOT CONNECTED — FOLLOW THE STEPS BELOW", MUTED);
+        } else {
+            setStatus("ADB NOT CONNECTED • MENU PREVIEW ONLY", MUTED);
+        }
+    }
+
+    private void renderMenuPage() {
+        addHeading("REDUX IN-GAME MENU");
+        TextView instruction = new TextView(this);
+        instruction.setText("HOLD LEFT TRIGGER + GRIP TO OPEN MENU");
+        instruction.setTextColor(RED);
+        instruction.setTextSize(18);
+        instruction.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        instruction.setPadding(dp(10), dp(12), dp(10), dp(12));
+        instruction.setGravity(Gravity.CENTER);
+        instruction.setBackground(shape(CARD, RED, 2, 10));
+        body.addView(instruction, new LinearLayout.LayoutParams(-1, -2));
+
+        addText("Target controller shortcut: hold the LEFT trigger and LEFT grip together to toggle the menu. This Android screen is the REDUX menu preview; the shortcut only works inside a game after a compatible game-side plugin is installed and tested.", MUTED, 12);
+
+        addHeading("DISPLAY STYLE");
+        LinearLayout modes = new LinearLayout(this);
+        modes.setOrientation(LinearLayout.HORIZONTAL);
+        modes.addView(menuModeButton("HAND MENU", "HAND"), weightParams());
+        modes.addView(menuModeButton("FLOATING COMPUTER", "COMPUTER"), weightParams());
+        body.addView(modes, new LinearLayout.LayoutParams(-1, dp(40)));
+
+        addHeading("SELECT MENU PROFILE");
+        LinearLayout p1 = new LinearLayout(this);
+        p1.setOrientation(LinearLayout.HORIZONTAL);
+        p1.addView(menuProfileButton("REDUX", "REDUX"), weightParams());
+        p1.addView(menuProfileButton("LUDEX / LUNEX", "LUNEX"), weightParams());
+        p1.addView(menuProfileButton("STRIPES ADB", "STRIPES"), weightParams());
+        body.addView(p1, new LinearLayout.LayoutParams(-1, dp(40)));
+
+        LinearLayout p2 = new LinearLayout(this);
+        p2.setOrientation(LinearLayout.HORIZONTAL);
+        p2.addView(menuProfileButton("DELTA", "DELTA"), weightParams());
+        p2.addView(menuProfileButton("MOONLIT V2", "MOONLIT"), weightParams());
+        p2.addView(menuProfileButton("DEVICE", "DEVICE"), weightParams());
+        body.addView(p2, new LinearLayout.LayoutParams(-1, dp(40)));
+
+        addFeature("SELECTED PROFILE", menuProfile + " • profile selection changes this REDUX preview only; it does not install or load another menu's binaries.");
+
+        addHeading("MENU CATEGORY");
+        LinearLayout tabs = new LinearLayout(this);
+        tabs.setOrientation(LinearLayout.HORIZONTAL);
+        tabs.addView(menuTabButton("MOVE", "MOVEMENT"), weightParams());
+        tabs.addView(menuTabButton("VISUALS", "VISUALS"), weightParams());
+        tabs.addView(menuTabButton("PLAYER", "PLAYER"), weightParams());
+        tabs.addView(menuTabButton("SETTINGS", "SETTINGS"), weightParams());
+        body.addView(tabs, new LinearLayout.LayoutParams(-1, dp(40)));
+
+        addHeading(menuProfile + " • " + menuTab);
+        addFeature(menuMode.equals("HAND") ? "HAND-ATTACHED MENU PREVIEW" : "FLOATING COMPUTER MENU PREVIEW",
+                menuMode.equals("HAND")
+                        ? "In-game target: a panel attached beside the left hand, toggled by holding LEFT trigger + LEFT grip."
+                        : "In-game target: a floating computer-style panel in front of the player, toggled by holding LEFT trigger + LEFT grip.");
+
+        if ("VISUALS".equals(menuTab)) {
+            addPreviewOption("GHOST MONKE", "Visual feature placeholder. This APK does not change game visuals.");
+            addPreviewOption("TRACERS", "Visual feature placeholder. A game-side implementation is required.");
+            addPreviewOption("PLAYER HIGHLIGHTS", "Visual feature placeholder. Not active in this preview.");
+        } else if ("PLAYER".equals(menuTab)) {
+            addPreviewOption("LONG ARMS", "Player feature placeholder. Not active in this preview.");
+            addPreviewOption("WALL WALK", "Player feature placeholder. Not active in this preview.");
+            addPreviewOption("SPIDER-MAN", "Player feature placeholder. Not active in this preview.");
+        } else if ("SETTINGS".equals(menuTab)) {
+            addPreviewOption("MENU POSITION", "The intended game plugin must implement hand and floating positioning.");
+            addPreviewOption("CONTROLLER SHORTCUT", "Target shortcut: hold left trigger and left grip together.");
+            addPreviewOption("PROFILE SELECTOR", "Selecting a profile changes the preview; separate compatible integrations are needed for real features.");
+        } else {
+            addPreviewOption("FLY", "Movement feature placeholder. This button is not connected to game code.");
+            addPreviewOption("JOYSTICK FLY", "Movement feature placeholder. This button is not connected to game code.");
+            addPreviewOption("VELOCITY FLY", "Movement feature placeholder. This button is not connected to game code.");
+        }
+
+        addText("REALITY CHECK: these controls are marked as previews, not ON/OFF game cheats. The Quest app cannot read controller buttons from a different running game or draw over that game by itself. A compatible Unity/Quest mod loader and game-specific integration are still required for the requested in-game overlay.", MUTED, 11);
+    }
+
+    private View menuModeButton(String label, String mode) {
+        Button b = baseButton(label, !menuMode.equals(mode));
+        b.setTextSize(9);
+        b.setOnClickListener(v -> {
+            menuMode = mode;
+            showPage("MENU");
+        });
+        return b;
+    }
+
+    private View menuProfileButton(String label, String profile) {
+        Button b = baseButton(label, !menuProfile.equals(profile));
+        b.setTextSize(9);
+        b.setOnClickListener(v -> {
+            menuProfile = profile;
+            showPage("MENU");
+        });
+        return b;
+    }
+
+    private View menuTabButton(String label, String tab) {
+        Button b = baseButton(label, !menuTab.equals(tab));
+        b.setTextSize(9);
+        b.setOnClickListener(v -> {
+            menuTab = tab;
+            showPage("MENU");
+        });
+        return b;
+    }
+
+    private void addPreviewOption(String label, String note) {
+        Button b = baseButton(label + "  •  PREVIEW ONLY", true);
+        b.setTextSize(11);
+        b.setOnClickListener(v -> new AlertDialog.Builder(this)
+                .setTitle(label)
+                .setMessage(note + "\n\nThis is a visual preview only; no game feature is activated by this button.")
+                .setPositiveButton("OK", null)
+                .show());
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, dp(42));
+        lp.setMargins(0, dp(3), 0, dp(3));
+        body.addView(b, lp);
     }
 
     private void renderConnectionPage() {
