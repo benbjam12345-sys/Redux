@@ -6,6 +6,7 @@ on:
       - 'REDUX-Android-source.zip'
       - '.github/workflows/build-redux.yml'
       - 'hotfix/**'
+      - 'game-plugin/**'
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
@@ -66,6 +67,19 @@ jobs:
         if: success()
         run: cp REDUX-Android/app/build/outputs/apk/debug/app-debug.apk REDUX-debug.apk
 
+      - name: Package Unity menu source template
+        if: success()
+        run: zip -qr REDUX-Unity-Plugin-Source.zip game-plugin
+
+      - name: Upload Unity menu source template
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: REDUX-unity-plugin-source
+          path: REDUX-Unity-Plugin-Source.zip
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Upload APK artifact
         if: success()
         uses: actions/upload-artifact@v4
@@ -87,7 +101,9 @@ jobs:
           prerelease: true
           make_latest: false
           overwrite_files: true
-          files: REDUX-debug.apk
+          files: |
+            REDUX-debug.apk
+            REDUX-Unity-Plugin-Source.zip
 
       - name: Upload build log if a previous step failed
         if: failure()
