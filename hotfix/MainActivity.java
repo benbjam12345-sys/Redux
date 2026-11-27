@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -85,19 +86,6 @@ public final class MainActivity extends Activity {
         subtitle.setTextSize(12);
         root.addView(subtitle, new LinearLayout.LayoutParams(-1, dp(28)));
 
-        LinearLayout navTop = new LinearLayout(this);
-        navTop.setOrientation(LinearLayout.HORIZONTAL);
-        navTop.addView(navButton("CONNECT", "CONNECT"), weightParams());
-        navTop.addView(navButton("MENU", "MENU"), weightParams());
-        navTop.addView(navButton("PROFILES", "MODS"), weightParams());
-        root.addView(navTop, new LinearLayout.LayoutParams(-1, dp(39)));
-
-        LinearLayout navBottom = new LinearLayout(this);
-        navBottom.setOrientation(LinearLayout.HORIZONTAL);
-        navBottom.addView(navButton("DEVICE TOOLS", "TOOLS"), weightParams());
-        navBottom.addView(navButton("APP LAUNCHER", "APPS"), weightParams());
-        root.addView(navBottom, new LinearLayout.LayoutParams(-1, dp(39)));
-
         status = new TextView(this);
         status.setText("NOT CONNECTED");
         status.setTextColor(MUTED);
@@ -114,7 +102,7 @@ public final class MainActivity extends Activity {
         root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
 
         TextView footer = new TextView(this);
-        footer.setText("CONNECT ONCE • OTHER REDUX TOOLS SHARE THIS CONNECTION");
+        footer.setText("CONNECTION SETUP ONLY • IN-GAME MENU REQUIRES GAME-SIDE INTEGRATION");
         footer.setTextColor(MUTED);
         footer.setTextSize(9);
         footer.setGravity(Gravity.CENTER);
@@ -139,27 +127,30 @@ public final class MainActivity extends Activity {
     private void showPage(String target) {
         body.removeAllViews();
         outputView = null;
-
-        if ("MENU".equals(target)) {
-            renderMenuPage();
-        } else if ("MODS".equals(target) || "MODULES".equals(target)) {
-            renderModulesPage();
-        } else if ("TOOLS".equals(target)) {
-            renderToolsPage();
-        } else if ("APPS".equals(target)) {
-            renderAppsPage();
-        } else {
-            renderConnectionPage();
-            if (adbConnected) renderQuickActions();
-        }
-
+        renderConnectionPage();
         addOutputBox();
-        if (adbConnected) {
-            setStatus("CONNECTED — SHARED ADB SESSION", RED);
-        } else if ("CONNECT".equals(target)) {
-            setStatus("NOT CONNECTED — FOLLOW THE STEPS BELOW", MUTED);
-        } else {
-            setStatus("ADB NOT CONNECTED • MENU PREVIEW ONLY", MUTED);
+        setStatus(adbConnected ? "CONNECTED — SHARED ADB SESSION" :
+                "NOT CONNECTED — FOLLOW THE STEPS BELOW", adbConnected ? RED : MUTED);
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        if (body != null && prefs != null) showPage("CONNECT");
+    }
+
+    private void requestOverlayPermission() {
+        if (Settings.canDrawOverlays(this)) {
+            toast("Display permission is already allowed. This does not give the app access to Gorilla Tag's controller input.");
+            showPage("CONNECT");
+            return;
+        }
+        try {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
+        } catch (Exception e) {
+            try { startActivity(new Intent(Settings.ACTION_SETTINGS)); }
+            catch (Exception ignored) { toast("Open Quest Settings and look for special app access / display over other apps."); }
         }
     }
 
@@ -281,9 +272,9 @@ public final class MainActivity extends Activity {
     }
 
     private void renderConnectionPage() {
-        addHeading(adbConnected ? "YOU'RE CONNECTED!" : "LET'S CONNECT");
+        addHeading(adbConnected ? "ADB CONNECTED" : "CONNECT YOUR QUEST");
         if (!adbConnected) {
-            addText("Do these 3 things in order. You only need to pair the first time.", WHITE, 14);
+            addText("Pair once with the six-digit code, then connect using the separate Wireless Debugging port. This is the only REDUX app screen.", WHITE, 14);
             addSpace(5);
             addHeading("STEP 1 — OPEN SETTINGS");
             addText("Open Wireless Debugging on your Quest.", MUTED, 12);
@@ -302,7 +293,18 @@ public final class MainActivity extends Activity {
             connectPortField = addField("CONNECTION PORT", prefs.getString("connection_port", ""), InputType.TYPE_CLASS_NUMBER);
             addButton("3. CONNECT REDUX", false, this::doConnect);
         } else {
-            addText("Great! REDUX is connected. You do not need to connect again unless the connection drops.", WHITE, 14);
+            addText("REDUX is connected. Keep this screen for connection status; the intended menu and profile selector belong inside Gorilla Tag, not on this app screen.", WHITE, 14);
+            addFeature("IN-GAME SHORTCUT (INTENDED)", "Hold LEFT GRIP + LEFT TRIGGER together for 3 seconds to toggle the square menu. It only works when a compatible Gorilla Tag game-side plugin has been installed and verified.");
+            addButton("DISCONNECT ADB", true, this::doDisconnect);
+        }
+
+        addSpace(8);
+        addHeading("DISPLAY PERMISSION");
+        if (Settings.canDrawOverlays(this)) {
+            addText("Android display-over-other-apps permission: ALLOWED. This permission alone cannot draw a VR-world panel inside Gorilla Tag or read its controller input.", MUTED, 12);
+        } else {
+            addText("REDUX can ask Android for display-over-other-apps permission. On Quest, this setting may be unavailable or may not create a VR overlay. The actual in-game panel still requires a compatible game plugin.", MUTED, 12);
+            addButton("ALLOW DISPLAY OVER OTHER APPS", false, this::requestOverlayPermission);
         }
     }
 
