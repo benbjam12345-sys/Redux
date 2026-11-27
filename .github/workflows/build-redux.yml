@@ -5,6 +5,7 @@ on:
     paths:
       - 'REDUX-Android-source.zip'
       - '.github/workflows/build-redux.yml'
+      - 'hotfix/**'
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
