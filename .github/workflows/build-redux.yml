@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -28,7 +28,9 @@ jobs:
 
       - name: Install Android SDK platform and build tools
         run: |
+          set +o pipefail
           yes | sdkmanager --licenses
+          set -o pipefail
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Set up Gradle
@@ -47,7 +49,9 @@ jobs:
 
       - name: Build debug APK
         working-directory: REDUX-Android
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: |
+          set -o pipefail
+          gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee "$GITHUB_WORKSPACE/redux-gradle-build.log"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -55,4 +59,27 @@ jobs:
           name: REDUX-debug-apk
           path: REDUX-Android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+          retention-days: 7
+
+      - name: Publish downloadable test APK
+        if: success() && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: redux-debug-build
+          name: REDUX Debug APK
+          body: |
+            Automated debug build of REDUX for testing on Android / Meta Quest 3S.
+            This is a debug APK, not a signed production release. Gameplay mod features remain a catalog until a compatible game-side bridge is provided and verified.
+          prerelease: true
+          make_latest: false
+          overwrite_files: true
+          files: REDUX-Android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload build log if a previous step failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: REDUX-build-log
+          path: redux-gradle-build.log
+          if-no-files-found: ignore
           retention-days: 7
