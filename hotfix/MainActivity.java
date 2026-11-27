@@ -67,36 +67,28 @@ public final class MainActivity extends Activity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(BG);
-        root.setPadding(dp(14), dp(6), dp(14), dp(10));
+        root.setPadding(dp(16), dp(10), dp(16), dp(12));
 
         TextView title = new TextView(this);
         title.setText("REDUX");
         title.setTextColor(RED);
-        title.setTextSize(30);
+        title.setTextSize(32);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        root.addView(title, new LinearLayout.LayoutParams(-1, dp(40)));
+        root.addView(title, new LinearLayout.LayoutParams(-1, dp(42)));
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("QUEST 3S  •  ONE ADB SESSION  •  UNIFIED TOOLKIT");
+        subtitle.setText("SIMPLE SETUP • QUEST 3S");
         subtitle.setTextColor(MUTED);
-        subtitle.setTextSize(10);
-        root.addView(subtitle, new LinearLayout.LayoutParams(-1, dp(23)));
-
-        LinearLayout nav = new LinearLayout(this);
-        nav.setOrientation(LinearLayout.HORIZONTAL);
-        nav.setPadding(0, dp(6), 0, dp(6));
-        nav.addView(navButton("CONNECT", "CONNECT"), weightParams());
-        nav.addView(navButton("TOOLS", "TOOLS"), weightParams());
-        nav.addView(navButton("APPS", "APPS"), weightParams());
-        nav.addView(navButton("MODULES", "MODS"), weightParams());
-        root.addView(nav, new LinearLayout.LayoutParams(-1, dp(50)));
+        subtitle.setTextSize(12);
+        root.addView(subtitle, new LinearLayout.LayoutParams(-1, dp(28)));
 
         status = new TextView(this);
+        status.setText("NOT CONNECTED");
         status.setTextColor(MUTED);
-        status.setTextSize(11);
-        status.setPadding(dp(10), dp(5), dp(10), dp(5));
+        status.setTextSize(13);
+        status.setPadding(dp(12), dp(9), dp(12), dp(9));
         status.setBackground(shape(CARD, Color.rgb(70, 25, 34), 1, 8));
-        root.addView(status, new LinearLayout.LayoutParams(-1, dp(29)));
+        root.addView(status, new LinearLayout.LayoutParams(-1, dp(42)));
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
@@ -106,12 +98,12 @@ public final class MainActivity extends Activity {
         root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
 
         TextView footer = new TextView(this);
-        footer.setText("ONE SHARED ADB SESSION  •  IN-GAME MODS NEED THE GAME PLUGIN");
+        footer.setText("CONNECT ONCE • OTHER REDUX TOOLS SHARE THIS CONNECTION");
         footer.setTextColor(MUTED);
-        footer.setTextSize(8);
+        footer.setTextSize(9);
         footer.setGravity(Gravity.CENTER);
-        footer.setPadding(0, dp(6), 0, 0);
-        root.addView(footer, new LinearLayout.LayoutParams(-1, dp(20)));
+        footer.setPadding(0, dp(8), 0, 0);
+        root.addView(footer, new LinearLayout.LayoutParams(-1, dp(25)));
         setContentView(root);
     }
 
@@ -131,28 +123,48 @@ public final class MainActivity extends Activity {
     private void showPage(String target) {
         body.removeAllViews();
         outputView = null;
-        if ("CONNECT".equals(target)) renderConnectionPage();
-        else if ("TOOLS".equals(target)) renderToolsPage();
-        else if ("APPS".equals(target)) renderAppsPage();
-        else renderModulesPage();
+        renderConnectionPage();
+        if (adbConnected) renderQuickActions();
         addOutputBox();
-        setStatus(adbConnected ? "●  ALL ADB PROFILES CONNECTED — ONE SHARED SESSION" : "●  DISCONNECTED — CONNECT ONCE", adbConnected ? RED : MUTED);
+        setStatus(adbConnected ? "CONNECTED — READY TO USE" : "NOT CONNECTED — FOLLOW THE STEPS BELOW", adbConnected ? RED : MUTED);
     }
 
     private void renderConnectionPage() {
-        addHeading("CONNECT YOUR ADB");
-        addText("Start here. Status begins as NOT CONNECTED. Pair and connect once; then all REDUX profiles share that one authenticated ADB session. They are profiles inside REDUX, not separate background ADB apps.", MUTED, 13);
-        hostField = addField("Host / IP address", prefs.getString("host", "127.0.0.1"), InputType.TYPE_CLASS_TEXT);
-        pairPortField = addField("Pairing port (temporary pairing dialog)", "", InputType.TYPE_CLASS_NUMBER);
-        pairCodeField = addField("Six-digit pairing code", "", InputType.TYPE_CLASS_NUMBER);
-        pairCodeField.setFilters(new InputFilter[]{new InputFilter.LengthFilter(6)});
-        connectPortField = addField("Connection port (main Wireless Debugging page)", prefs.getString("connection_port", ""), InputType.TYPE_CLASS_NUMBER);
-        addButton("OPEN WIRELESS DEBUGGING SETTINGS", true, this::openWirelessSettings);
-        addButton("PAIR DEVICE (FIRST TIME / IF REVOKED)", true, this::doPair);
-        addButton(adbConnected ? "CONNECTED — ALL PROFILES READY" : "CONNECT ADB ONCE", false, this::doConnect);
-        addButton("DISCONNECT REDUX SESSION", true, this::doDisconnect);
-        addSpace(6);
-        addText("For this headset, use 127.0.0.1. The pairing port and the connection port are different. Your pairing identity is kept in REDUX private storage; the connection port is saved for next time.", MUTED, 12);
+        addHeading(adbConnected ? "YOU'RE CONNECTED!" : "LET'S CONNECT");
+        if (!adbConnected) {
+            addText("Do these 3 things in order. You only need to pair the first time.", WHITE, 14);
+            addSpace(5);
+            addHeading("STEP 1 — OPEN SETTINGS");
+            addText("Open Wireless Debugging on your Quest.", MUTED, 12);
+            addButton("1. OPEN WIRELESS DEBUGGING", false, this::openWirelessSettings);
+
+            addHeading("STEP 2 — PAIR (FIRST TIME ONLY)");
+            addText("Tap Pair device with pairing code in Quest settings. Copy the temporary pairing port and the six-digit code into these boxes.", MUTED, 12);
+            pairPortField = addField("PAIRING PORT", "", InputType.TYPE_CLASS_NUMBER);
+            pairCodeField = addField("SIX-DIGIT CODE", "", InputType.TYPE_CLASS_NUMBER);
+            pairCodeField.setFilters(new InputFilter[]{new InputFilter.LengthFilter(6)});
+            addButton("2. PAIR REDUX", true, this::doPair);
+
+            addHeading("STEP 3 — CONNECT");
+            addText("Go back to the main Wireless Debugging screen. Enter the port shown there (not the pairing port). Leave Host as 127.0.0.1 for this Quest.", MUTED, 12);
+            hostField = addField("HOST (LEAVE AS IS)", prefs.getString("host", "127.0.0.1"), InputType.TYPE_CLASS_TEXT);
+            connectPortField = addField("CONNECTION PORT", prefs.getString("connection_port", ""), InputType.TYPE_CLASS_NUMBER);
+            addButton("3. CONNECT REDUX", false, this::doConnect);
+        } else {
+            addText("Great! REDUX is connected. You do not need to connect again unless the connection drops.", WHITE, 14);
+        }
+    }
+
+    private void renderQuickActions() {
+        addHeading("QUICK ACTIONS");
+        addText("Choose one. No extra setup is needed.", MUTED, 12);
+        addButton("CHECK MY QUEST", false, () -> runPreset("Checking Quest…", "getprop ro.product.model; getprop ro.build.version.release"));
+        addButton("LIST INSTALLED APPS", true, () -> runPreset("Listing apps…", "pm list packages -3"));
+        packageField = addField("APP PACKAGE (OPTIONAL)", prefs.getString("package", "com.AnotherAxiom.GorillaTag"), InputType.TYPE_CLASS_TEXT);
+        addButton("OPEN THIS APP", false, () -> withPackage(pkg -> runPreset("Opening app…", "monkey -p " + pkg + " -c android.intent.category.LAUNCHER 1")));
+        addButton("DISCONNECT", true, this::doDisconnect);
+        addSpace(8);
+        addText("The profile names and in-game mod library are separate from this ADB connection. Connecting ADB does not automatically install or activate game mods.", MUTED, 11);
     }
 
     private void renderToolsPage() {
