@@ -45,6 +45,9 @@ jobs:
       - name: Extract Android source
         run: unzip -q REDUX-Android-source.zip
 
+      - name: Apply unified REDUX UI fix
+        run: cp hotfix/MainActivity.java REDUX-Android/app/src/main/java/com/redux/app/MainActivity.java
+
       - name: Verify project files
         run: |
           test -f REDUX-Android/settings.gradle
