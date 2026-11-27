@@ -273,6 +273,14 @@ public final class MainActivity extends Activity {
 
     private void renderConnectionPage() {
         addHeading(adbConnected ? "ADB CONNECTED" : "CONNECT YOUR QUEST");
+        addHeading("DISPLAY PERMISSION");
+        if (Settings.canDrawOverlays(this)) {
+            addText("Android display permission: ALLOWED. This still does not give REDUX access to Gorilla Tag's controller input.", MUTED, 12);
+        } else {
+            addText("Allow display over other apps first if Quest exposes this setting. It does not replace the game-side plugin needed for a VR-world menu.", MUTED, 12);
+            addButton("ALLOW DISPLAY OVER OTHER APPS", false, this::requestOverlayPermission);
+        }
+        addSpace(6);
         if (!adbConnected) {
             addText("Pair once with the six-digit code, then connect using the separate Wireless Debugging port. This is the only REDUX app screen.", WHITE, 14);
             addSpace(5);
@@ -298,14 +306,6 @@ public final class MainActivity extends Activity {
             addButton("DISCONNECT ADB", true, this::doDisconnect);
         }
 
-        addSpace(8);
-        addHeading("DISPLAY PERMISSION");
-        if (Settings.canDrawOverlays(this)) {
-            addText("Android display-over-other-apps permission: ALLOWED. This permission alone cannot draw a VR-world panel inside Gorilla Tag or read its controller input.", MUTED, 12);
-        } else {
-            addText("REDUX can ask Android for display-over-other-apps permission. On Quest, this setting may be unavailable or may not create a VR overlay. The actual in-game panel still requires a compatible game plugin.", MUTED, 12);
-            addButton("ALLOW DISPLAY OVER OTHER APPS", false, this::requestOverlayPermission);
-        }
     }
 
     private void renderQuickActions() {
