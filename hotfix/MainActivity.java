@@ -106,7 +106,7 @@ public final class MainActivity extends Activity {
         root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
 
         TextView footer = new TextView(this);
-        footer.setText("ONE CONNECTION FOR ALL REDUX PANELS  •  GAME MODS NEED A COMPATIBLE BRIDGE");
+        footer.setText("ONE SHARED ADB SESSION  •  IN-GAME MODS NEED THE GAME PLUGIN");
         footer.setTextColor(MUTED);
         footer.setTextSize(8);
         footer.setGravity(Gravity.CENTER);
@@ -136,12 +136,12 @@ public final class MainActivity extends Activity {
         else if ("APPS".equals(target)) renderAppsPage();
         else renderModulesPage();
         addOutputBox();
-        setStatus(adbConnected ? "●  CONNECTED / READY — SHARED SESSION" : "●  DISCONNECTED — CONNECT ONCE", adbConnected ? RED : MUTED);
+        setStatus(adbConnected ? "●  ALL ADB PROFILES CONNECTED — ONE SHARED SESSION" : "●  DISCONNECTED — CONNECT ONCE", adbConnected ? RED : MUTED);
     }
 
     private void renderConnectionPage() {
-        addHeading("ONE ADB CONNECTION");
-        addText("Pair once, connect once, then switch between Tools, Apps and the module profiles. REDUX keeps one ADB manager and reuses it; tab switching does not create more connections.", MUTED, 13);
+        addHeading("CONNECT YOUR ADB");
+        addText("Start here. Status begins as NOT CONNECTED. Pair and connect once; then all REDUX profiles share that one authenticated ADB session. They are profiles inside REDUX, not separate background ADB apps.", MUTED, 13);
         hostField = addField("Host / IP address", prefs.getString("host", "127.0.0.1"), InputType.TYPE_CLASS_TEXT);
         pairPortField = addField("Pairing port (temporary pairing dialog)", "", InputType.TYPE_CLASS_NUMBER);
         pairCodeField = addField("Six-digit pairing code", "", InputType.TYPE_CLASS_NUMBER);
@@ -149,7 +149,7 @@ public final class MainActivity extends Activity {
         connectPortField = addField("Connection port (main Wireless Debugging page)", prefs.getString("connection_port", ""), InputType.TYPE_CLASS_NUMBER);
         addButton("OPEN WIRELESS DEBUGGING SETTINGS", true, this::openWirelessSettings);
         addButton("PAIR DEVICE (FIRST TIME / IF REVOKED)", true, this::doPair);
-        addButton(adbConnected ? "ALREADY CONNECTED — SWITCH TABS" : "CONNECT ONCE / RECONNECT", false, this::doConnect);
+        addButton(adbConnected ? "CONNECTED — ALL PROFILES READY" : "CONNECT ADB ONCE", false, this::doConnect);
         addButton("DISCONNECT REDUX SESSION", true, this::doDisconnect);
         addSpace(6);
         addText("For this headset, use 127.0.0.1. The pairing port and the connection port are different. Your pairing identity is kept in REDUX private storage; the connection port is saved for next time.", MUTED, 12);
@@ -338,7 +338,7 @@ public final class MainActivity extends Activity {
 
     private void runPreset(String message, String command) {
         if (!adbConnected) {
-            lastOutput = "Not connected. Open CONNECT and tap CONNECT ONCE / RECONNECT first. Then return here; this panel shares that session.";
+            lastOutput = "Not connected. Open CONNECT and tap CONNECT ADB ONCE first. Then return here; this panel shares that session.";
             if (outputView != null) outputView.setText(lastOutput);
             setStatus("●  CONNECT REQUIRED", MUTED);
             toast("Connect to ADB once first.");
@@ -373,7 +373,7 @@ public final class MainActivity extends Activity {
                 if (connectedOnSuccess && succeeded) adbConnected = true;
                 if (!succeeded && (shown.toLowerCase(Locale.ROOT).contains("connection was not established")
                         || shown.toLowerCase(Locale.ROOT).contains("not connected"))) adbConnected = false;
-                setStatus(succeeded ? (adbConnected ? "●  CONNECTED / READY — SHARED SESSION" : "●  OPERATION COMPLETE")
+                setStatus(succeeded ? (adbConnected ? "●  ALL ADB PROFILES CONNECTED — ONE SHARED SESSION" : "●  OPERATION COMPLETE")
                         : "●  CHECK OUTPUT", succeeded ? RED : MUTED);
                 if (outputView != null) outputView.setText(lastOutput);
             });
