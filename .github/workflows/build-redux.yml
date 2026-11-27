@@ -48,16 +48,22 @@ jobs:
           test -f REDUX-Android/app/src/main/AndroidManifest.xml
 
       - name: Build debug APK
+        id: build_apk
         working-directory: REDUX-Android
         run: |
           set -o pipefail
           gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee "$GITHUB_WORKSPACE/redux-gradle-build.log"
 
+      - name: Name APK for download
+        if: success()
+        run: cp REDUX-Android/app/build/outputs/apk/debug/app-debug.apk REDUX-debug.apk
+
       - name: Upload APK artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: REDUX-debug-apk
-          path: REDUX-Android/app/build/outputs/apk/debug/app-debug.apk
+          path: REDUX-debug.apk
           if-no-files-found: error
           retention-days: 7
 
@@ -73,7 +79,7 @@ jobs:
           prerelease: true
           make_latest: false
           overwrite_files: true
-          files: REDUX-Android/app/build/outputs/apk/debug/app-debug.apk
+          files: REDUX-debug.apk
 
       - name: Upload build log if a previous step failed
         if: failure()
@@ -83,3 +89,27 @@ jobs:
           path: redux-gradle-build.log
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Record build result for verification
+        if: always()
+        env:
+          BUILD_STEP_RESULT: ${{ steps.build_apk.outcome || 'not-run' }}
+          JOB_RESULT: ${{ job.status }}
+          BUILD_SHA: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          mkdir -p .build
+          {
+            echo "apk_build_result=$BUILD_STEP_RESULT"
+            echo "workflow_result=$JOB_RESULT"
+            echo "source_commit=$BUILD_SHA"
+            echo "run_url=$RUN_URL"
+            echo "checked_at_utc=$(date -u +%FT%TZ)"
+          } > .build/latest-build-status.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .build/latest-build-status.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "Record REDUX cloud build result"
+            git push
+          fi
