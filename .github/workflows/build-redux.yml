@@ -95,7 +95,7 @@ jobs:
           retention-days: 7
 
       - name: Record build result for verification
-        if: always()
+        if: always() && github.ref == 'refs/heads/main'
         env:
           BUILD_STEP_RESULT: ${{ steps.build_apk.outcome || 'not-run' }}
           JOB_RESULT: ${{ job.status }}
