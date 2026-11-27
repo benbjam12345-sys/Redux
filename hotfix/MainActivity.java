@@ -373,7 +373,7 @@ public final class MainActivity extends Activity {
                 if (connectedOnSuccess && succeeded) adbConnected = true;
                 if (!succeeded && (shown.toLowerCase(Locale.ROOT).contains("connection was not established")
                         || shown.toLowerCase(Locale.ROOT).contains("not connected"))) adbConnected = false;
-                setStatus(succeeded ? (adbConnected ? "●  ALL ADB PROFILES CONNECTED — ONE SHARED SESSION" : "●  OPERATION COMPLETE")
+                setStatus(succeeded ? (adbConnected ? "●  ALL ADB PROFILES CONNECTED — ONE SHARED SESSION" : "●  NOT CONNECTED — CONNECT ONCE")
                         : "●  CHECK OUTPUT", succeeded ? RED : MUTED);
                 if (outputView != null) outputView.setText(lastOutput);
             });
