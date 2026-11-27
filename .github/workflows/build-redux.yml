@@ -50,6 +50,21 @@ jobs:
       - name: Apply unified REDUX UI fix
         run: cp hotfix/MainActivity.java REDUX-Android/app/src/main/java/com/redux/app/MainActivity.java
 
+      - name: Add Android display permission declaration
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("REDUX-Android/app/src/main/AndroidManifest.xml")
+          s = p.read_text()
+          permission = '    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />\\n'
+          if "android.permission.SYSTEM_ALERT_WINDOW" not in s:
+              pos = s.find("<application")
+              if pos < 0:
+                  raise SystemExit("Could not locate <application> in AndroidManifest.xml")
+              s = s[:pos] + permission + s[pos:]
+              p.write_text(s)
+          PY
+
       - name: Verify project files
         run: |
           test -f REDUX-Android/settings.gradle
