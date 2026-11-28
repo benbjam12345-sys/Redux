@@ -311,18 +311,20 @@ public final class MainActivity extends Activity {
             addText("Open Wireless Debugging on your Quest.", MUTED, 12);
             addButton("1. OPEN WIRELESS DEBUGGING", false, this::openWirelessSettings);
 
-            addHeading("STEP 2 — PAIR (FIRST TIME ONLY)");
-            addText("Tap Pair device with pairing code in Quest settings. Copy the Quest IP address, temporary pairing port, and six-digit code into these boxes. The pairing port changes and is not the connection port.", MUTED, 12);
+            addHeading("STEP 2 — ENTER QUEST DETAILS");
+            addText("Enter the IP shown on the Quest Wireless Debugging screen. Keep this same IP for pairing and connecting.", MUTED, 12);
+            hostField = addField("QUEST IP ADDRESS", prefs.getString("host", ""), InputType.TYPE_CLASS_TEXT);
+            addHeading("STEP 3 — PAIR (FIRST TIME ONLY)");
+            addText("Tap Pair device with pairing code on the Quest. Enter the temporary pairing port and six-digit code shown there.", MUTED, 12);
             pairPortField = addField("PAIRING PORT", "", InputType.TYPE_CLASS_NUMBER);
             pairCodeField = addField("SIX-DIGIT CODE", "", InputType.TYPE_CLASS_NUMBER);
             pairCodeField.setFilters(new InputFilter[]{new InputFilter.LengthFilter(6)});
             addButton("2. PAIR REDUX", true, this::doPair);
 
-            addHeading("STEP 3 — CONNECT");
-            addText("Go back to the main Wireless Debugging screen. Enter the Quest IP address and the connection port shown there. Do not use the temporary pairing port here.", MUTED, 12);
-            hostField = addField("QUEST IP ADDRESS (FROM WIRELESS DEBUGGING)", prefs.getString("host", ""), InputType.TYPE_CLASS_TEXT);
+            addHeading("STEP 4 — CONNECT");
+            addText("Return to the main Wireless Debugging screen. Enter its connection port below. Do not use the temporary pairing port.", MUTED, 12);
             connectPortField = addField("CONNECTION PORT", prefs.getString("connection_port", ""), InputType.TYPE_CLASS_NUMBER);
-            addButton("3. CONNECT REDUX", false, this::doConnect);
+            addButton("4. CONNECT REDUX", false, this::doConnect);
         } else {
             addText("REDUX is connected. Keep this screen for connection status; the intended menu and profile selector belong inside Gorilla Tag, not on this app screen.", WHITE, 14);
             addFeature("IN-GAME SHORTCUT (INTENDED)", "Hold LEFT GRIP + LEFT TRIGGER together for 3 seconds to toggle the square menu. It only works when a compatible Gorilla Tag game-side plugin has been installed and verified.");
@@ -481,7 +483,7 @@ public final class MainActivity extends Activity {
     }
 
     private void doPair() {
-        String host = hostField == null ? "127.0.0.1" : hostField.getText().toString().trim();
+        String host = hostField == null ? prefs.getString("host", "") : hostField.getText().toString().trim();
         String portText = pairPortField == null ? "" : pairPortField.getText().toString().trim();
         String code = pairCodeField == null ? "" : pairCodeField.getText().toString().trim();
         int port;
@@ -498,7 +500,7 @@ public final class MainActivity extends Activity {
     }
 
     private void doConnect() {
-        String host = hostField == null ? prefs.getString("host", "127.0.0.1") : hostField.getText().toString().trim();
+        String host = hostField == null ? prefs.getString("host", "") : hostField.getText().toString().trim();
         String portText = connectPortField == null ? prefs.getString("connection_port", "") : connectPortField.getText().toString().trim();
         int port;
         try { port = validPort(portText); }
