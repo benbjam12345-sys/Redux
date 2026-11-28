@@ -454,12 +454,30 @@ public final class MainActivity extends Activity {
     }
 
     private void openWirelessSettings() {
-        Intent i = new Intent("android.settings.WIRELESS_DEBUGGING_SETTINGS");
-        try { startActivity(i); }
-        catch (Exception first) {
-            try { startActivity(new Intent(Settings.ACTION_SETTINGS)); }
-            catch (Exception second) { toast("Open Settings > Developer options > Wireless debugging manually."); }
+        // Android/Quest OS builds differ: some expose the wireless-debugging
+        // deep link, while others only expose the Developer Options screen.
+        Intent[] intents = new Intent[] {
+                new Intent("android.settings.WIRELESS_DEBUGGING_SETTINGS"),
+                new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS),
+                new Intent(Settings.ACTION_SETTINGS)
+        };
+        for (int index = 0; index < intents.length; index++) {
+            try {
+                intents[index].addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intents[index]);
+                if (index == 0) {
+                    toast("Opening Wireless Debugging settings. If it opens a broader Settings page, choose Developer options > Wireless debugging.");
+                } else if (index == 1) {
+                    toast("Opening Developer options. Select Wireless debugging.");
+                } else {
+                    toast("Opening Android Settings. Navigate to System > Developer options > Wireless debugging.");
+                }
+                return;
+            } catch (Exception ignored) {
+                // Try the next supported Settings entry point.
+            }
         }
+        toast("Quest OS did not allow a Settings deep link. Open Quest Settings manually, then Developer options > Wireless debugging.");
     }
 
     private void doPair() {
